@@ -1,0 +1,13 @@
+CREATE TABLE wormholes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    from_map_name TEXT NOT NULL,
+    to_map_name TEXT NOT NULL,
+    from_pos_x REAL NOT NULL,
+    from_pos_y REAL NOT NULL,
+    from_ori_z REAL NOT NULL,
+    from_ori_w REAL NOT NULL,
+    to_pos_x REAL NOT NULL,
+    to_pos_y REAL NOT NULL,
+    to_ori_z REAL NOT NULL,
+    to_ori_w REAL NOT NULL
+);
