@@ -1,14 +1,16 @@
-#ifndef NAVIGATOR_H
-#define NAVIGATOR_H
+#ifndef MULTI_MAP_NAVIGATION_NAVIGATOR_H
+#define MULTI_MAP_NAVIGATION_NAVIGATOR_H
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
-#include "nav2_msgs/action/navigate_to_pose.hpp" // For the Nav2 client
+#include "nav2_msgs/action/navigate_to_pose.hpp"
 #include "multi_map_navigation/action/navigate_to.hpp"
-#include <sqlite3.h> // For the database connection
+#include "nav2_msgs/srv/load_map.hpp"
+#include <sqlite3.h>
 #include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 
-// A simple struct to hold wormhole data retrieved from the database
+// A simple struct to hold wormhole data
 struct WormholeData {
     geometry_msgs::msg::Pose entrance_pose;
     geometry_msgs::msg::Pose exit_pose;
@@ -21,33 +23,33 @@ public:
     using GoalHandleNavigateTo = rclcpp_action::ServerGoalHandle<NavigateToAction>;
 
     explicit MultiMapNavigator(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-    ~MultiMapNavigator(); // Add a destructor to close the database
+    ~MultiMapNavigator();
 
 private:
-    // Your action server
+    // Action server and client
     rclcpp_action::Server<NavigateToAction>::SharedPtr action_server_;
-
-    // Action client to talk to Nav2
     rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr nav2_client_;
 
-    // Database connection handle
+    // Service client for map loading
+    rclcpp::Client<nav2_msgs::srv::LoadMap>::SharedPtr map_load_client_;
+    
+    // Publisher for initial pose (AMCL)
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initial_pose_pub_;
+
+    // Database
     sqlite3* db_;
     std::string current_map_;
 
-    // Action server callbacks
-    rclcpp_action::GoalResponse handle_goal(
-        const rclcpp_action::GoalUUID & uuid,
-        std::shared_ptr<const NavigateToAction::Goal> goal);
-
-    rclcpp_action::CancelResponse handle_cancel(
-        const std::shared_ptr<GoalHandleNavigateTo> goal_handle);
-
+    // Action callbacks
+    rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID & uuid,
+                                            std::shared_ptr<const NavigateToAction::Goal> goal);
+    rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<GoalHandleNavigateTo> goal_handle);
     void handle_accepted(const std::shared_ptr<GoalHandleNavigateTo> goal_handle);
-
     void execute(const std::shared_ptr<GoalHandleNavigateTo> goal_handle);
-    
-    // Helper function to query the database
+
+    // Helper functions
     bool getWormhole(const std::string& from_map, const std::string& to_map, WormholeData& wormhole);
+    bool waitForService(rclcpp::ClientBase::SharedPtr client, std::chrono::seconds timeout);
 };
 
-#endif // NAVIGATOR_H
+#endif // MULTI_MAP_NAVIGATION_NAVIGATOR_H
