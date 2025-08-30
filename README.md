@@ -139,6 +139,8 @@ ros2 action send_goal /navigate_to_map multi_map_navigation/action/NavigateTo "{
   }
 }"
 ```
+## VIDEO
+https://drive.google.com/file/d/122HBQ53ug4vBlVJlVGUcGDoVjHFMBLfn/view?usp=sharing
 
    
 
